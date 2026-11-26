@@ -175,7 +175,6 @@ public class MainActivity extends Activity {
         });
 
         web.clearCache(true);
-        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         web.addJavascriptInterface(new Downloads(), "LubenAndroid");
         web.loadUrl(SITE + "/");
     }
