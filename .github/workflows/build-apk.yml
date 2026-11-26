@@ -1,0 +1,63 @@
+name: Generar APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Compilar APK
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleRelease
+
+      - name: Firmar APK
+        env:
+          KEYSTORE_B64: ${{ secrets.LUBEN_KEYSTORE_B64 }}
+          KEYSTORE_PASS: ${{ secrets.LUBEN_KEYSTORE_PASS }}
+        run: |
+          set -e
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > luben.jks
+            PASS="$KEYSTORE_PASS"
+          else
+            echo "Sin clave guardada: se genera una firma temporal para esta compilación."
+            PASS=$(openssl rand -hex 16)
+            keytool -genkeypair -keystore luben.jks -storepass "$PASS" -keypass "$PASS" \
+              -alias luben -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Luben Asistencia, O=Confiteria Luben, C=PE"
+          fi
+          "$BT/zipalign" -f -p 4 app/build/outputs/apk/release/app-release-unsigned.apk aligned.apk
+          "$BT/apksigner" sign --ks luben.jks --ks-pass "pass:$PASS" --out luben-asistencia.apk aligned.apk
+          "$BT/apksigner" verify --verbose luben-asistencia.apk
+          rm -f luben.jks
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: luben-asistencia-apk
+          path: luben-asistencia.apk
+
+      - name: Publicar descarga
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v1.3-${GITHUB_RUN_NUMBER}"
+          gh release create "$TAG" luben-asistencia.apk \
+            --title "Luben Asistencia $TAG" \
+            --notes "APK para instalar en Android. Descargue luben-asistencia.apk desde el celular."

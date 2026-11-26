@@ -1,0 +1,19 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'com.luben.asistencia'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'com.luben.asistencia'
+        minSdk 26
+        targetSdk 35
+        versionCode 4
+        versionName '1.3'
+    }
+    buildTypes {
+        release { minifyEnabled false }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
