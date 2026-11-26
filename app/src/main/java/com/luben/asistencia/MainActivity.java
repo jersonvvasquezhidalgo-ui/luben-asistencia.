@@ -40,6 +40,8 @@ public class MainActivity extends Activity {
     private static final String LOGIN_FIELDS = "(function(){function f(){var l=document.querySelectorAll('input');"
             + "for(var i=0;i<l.length;i++){var e=l[i];if(e.type==='password'||/user|usuario|dni|pass|clave/i.test((e.name||'')+(e.id||'')+(e.autocomplete||'')+(e.placeholder||''))||e.type==='text'){"
             + "e.setAttribute('autocapitalize','none');e.setAttribute('autocorrect','off');e.setAttribute('spellcheck','false');}}}"
+            + "if(!document.getElementById('luben-app-css')){var st=document.createElement('style');st.id='luben-app-css';"
+            + "st.textContent='.workerapp .workerheader{position:sticky!important;top:0!important;z-index:15;background:#fff}';document.head.appendChild(st);}"
             + "f();if(!window.__lubenFields){window.__lubenFields=1;new MutationObserver(f).observe(document.documentElement,{childList:true,subtree:true});}})();";
 
     private void hideSplash() {
@@ -91,7 +93,7 @@ public class MainActivity extends Activity {
         settings.setAllowContentAccess(true);
         settings.setGeolocationEnabled(true);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-        settings.setUserAgentString(settings.getUserAgentString() + " LubenAsistencia/1.6");
+        settings.setUserAgentString(settings.getUserAgentString() + " LubenAsistencia/1.7");
         WebView.setWebContentsDebuggingEnabled(false);
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, false);
