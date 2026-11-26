@@ -91,7 +91,7 @@ public class MainActivity extends Activity {
         settings.setAllowContentAccess(true);
         settings.setGeolocationEnabled(true);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-        settings.setUserAgentString(settings.getUserAgentString() + " LubenAsistencia/1.5");
+        settings.setUserAgentString(settings.getUserAgentString() + " LubenAsistencia/1.6");
         WebView.setWebContentsDebuggingEnabled(false);
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, false);
@@ -174,6 +174,8 @@ public class MainActivity extends Activity {
             }
         });
 
+        web.clearCache(true);
+        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         web.addJavascriptInterface(new Downloads(), "LubenAndroid");
         web.loadUrl(SITE + "/");
     }
