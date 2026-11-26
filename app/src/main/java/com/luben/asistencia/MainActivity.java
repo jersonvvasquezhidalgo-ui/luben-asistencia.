@@ -34,6 +34,20 @@ public class MainActivity extends Activity {
     private WebView web;
     private PermissionRequest pendingCamera;
     private ValueCallback<Uri[]> pendingUpload;
+    private android.widget.ImageView splash;
+    private long splashShown;
+    /** Evita que el teclado del celular cambie mayúsculas o corrija el usuario y la contraseña. */
+    private static final String LOGIN_FIELDS = "(function(){function f(){var l=document.querySelectorAll('input');"
+            + "for(var i=0;i<l.length;i++){var e=l[i];if(e.type==='password'||/user|usuario|dni|pass|clave/i.test((e.name||'')+(e.id||'')+(e.autocomplete||'')+(e.placeholder||''))||e.type==='text'){"
+            + "e.setAttribute('autocapitalize','none');e.setAttribute('autocorrect','off');e.setAttribute('spellcheck','false');}}}"
+            + "f();if(!window.__lubenFields){window.__lubenFields=1;new MutationObserver(f).observe(document.documentElement,{childList:true,subtree:true});}})();";
+
+    private void hideSplash() {
+        if (splash == null || splash.getVisibility() != View.VISIBLE) return;
+        splash.animate().alpha(0f).setDuration(350).withEndAction(new Runnable() {
+            @Override public void run() { splash.setVisibility(View.GONE); }
+        }).start();
+    }
 
     private boolean isTrustedUrl(Uri uri) {
         return uri != null && "https".equalsIgnoreCase(uri.getScheme())
@@ -51,8 +65,18 @@ public class MainActivity extends Activity {
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
         web = new WebView(this);
         web.setBackgroundColor(0xffffffff);
-        setContentView(web);
-        web.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
+        final android.widget.FrameLayout root = new android.widget.FrameLayout(this);
+        root.setBackgroundColor(0xffffffff);
+        root.addView(web, new android.widget.FrameLayout.LayoutParams(-1, -1));
+        splash = new android.widget.ImageView(this);
+        splash.setImageResource(R.drawable.splash);
+        splash.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
+        splash.setBackgroundColor(0xffffffff);
+        root.addView(splash, new android.widget.FrameLayout.LayoutParams(-1, -1));
+        setContentView(root);
+        splashShown = android.os.SystemClock.uptimeMillis();
+        root.postDelayed(new Runnable() { @Override public void run() { hideSplash(); } }, 8000);
+        root.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
             @Override public WindowInsets onApplyWindowInsets(View view, WindowInsets insets) {
                 view.setPadding(insets.getSystemWindowInsetLeft(), insets.getSystemWindowInsetTop(),
                         insets.getSystemWindowInsetRight(), insets.getSystemWindowInsetBottom());
@@ -67,12 +91,17 @@ public class MainActivity extends Activity {
         settings.setAllowContentAccess(true);
         settings.setGeolocationEnabled(true);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-        settings.setUserAgentString(settings.getUserAgentString() + " LubenAsistencia/1.3");
+        settings.setUserAgentString(settings.getUserAgentString() + " LubenAsistencia/1.4");
         WebView.setWebContentsDebuggingEnabled(false);
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, false);
 
         web.setWebViewClient(new WebViewClient() {
+            @Override public void onPageFinished(WebView view, String url) {
+                if (isTrustedUrl(Uri.parse(url == null ? "" : url))) view.evaluateJavascript(LOGIN_FIELDS, null);
+                long wait = Math.max(0, 1500 - (android.os.SystemClock.uptimeMillis() - splashShown));
+                view.postDelayed(new Runnable() { @Override public void run() { hideSplash(); } }, wait);
+            }
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri uri = request.getUrl();
                 if (isTrustedUrl(uri)) return false;

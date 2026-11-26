@@ -55,7 +55,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="v1.3-${GITHUB_RUN_NUMBER}"
+          TAG="v1.4-${GITHUB_RUN_NUMBER}"
           gh release create "$TAG" luben-asistencia.apk \
             --title "Luben Asistencia $TAG" \
             --notes "APK para instalar en Android. Descargue luben-asistencia.apk desde el celular."
